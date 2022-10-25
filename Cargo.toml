@@ -1,0 +1,12 @@
+[package]
+name = "bitmap_handler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+parse_args = { path = "lib/arg_parser" }
+regex = "1"
+colored = "2.0.0"
+unicode-segmentation = "1.9.0"
