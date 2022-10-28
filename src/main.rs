@@ -1,121 +1,11 @@
 use std::collections::HashMap;
 use regex::Regex;
 
-use crate::handle_bmp::{BitMapRaw, BitMapColor, BitMapRawDrawToConsoleSettings};
+pub mod bmp;
+mod constants;
 
-///
-/// Command line argument key for file path.
-/// 
-const FILE_PATH_KEY: &str = "path";
-
-///
-/// Command line argument key for the byte representing
-/// transparency.
-/// 
-const TRANSPARENCY_BYTE_KEY: &str = "transparency";
-
-///
-/// Command line argument key for whether to force
-/// the output to not use truecolor
-/// 
-const FORCE_NO_TRUECOLOR_KEY: &str = "no_truecolor";
-
-///
-/// The string to use to represent the pixel in the console
-/// 
-const PIXEL_STRING_KEY: &str = "pixel_string";
-
-///
-/// Default string with which to represent the pixel in the console
-/// 
-const PIXEL_STRING_DEFAULT: &str = "█";
-
-///
-/// Command line argument key for the width of a
-/// pixel in multiples of the pixel string
-/// 
-const PIXEL_STRING_WIDTH_KEY: &str = "pixel_width";
-
-///
-/// Default character width for each pixel
-/// 
-const PIXEL_STRING_WIDTH_DEFAULT: u32 = 1;
-
-///
-/// Command line argument key for the algorithm with which to
-/// calculate the nearest console color when truecolor is disabled
-/// 
-const CONSOLE_COLOR_ALGORITHM_KEY: &str = "algorithm";
-
-///
-/// Use euclidean distance between rgb colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_RGB_EUCLIDEAN: &str = "euclidean";
-
-///
-/// Use manhattan distance between rgb colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_RGB_MANHATTAN: &str = "manhattan";
-
-///
-/// Use euclidean distance between xyz colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_XYZ_EUCLIDEAN: &str = "xyz_euclidean";
-
-///
-/// Use manhattan distance between xyz colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_XYZ_MANHATTAN: &str = "xyz_manhattan";
-
-///
-/// Use euclidean distance between l*a*b* colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_LAB_EUCLIDEAN: &str = "lab_euclidean";
-
-///
-/// Use manhattan distance between L*a*b* colors to find distance
-/// 
-const CONSOLE_COLOR_ALGORITHM_LAB_MANHATTAN: &str = "lab_manhattan";
-
-///
-/// The default algorithm with which to calculate the nearest console
-/// color when truecolor is disabled
-/// 
-const CONSOLE_COLOR_ALGORITHM_DEFAULT: &str = CONSOLE_COLOR_ALGORITHM_LAB_EUCLIDEAN;
-
-///
-/// Command line argument key to print help docs.
-/// 
-const HELP_KEY: &str = "help";
-
-///
-/// Environment variable for whether console supports
-/// truecolor output
-/// 
-const TRUECOLOR_ENABLED_ENV_KEY: &str = "COLORTERM";
-
-///
-/// Valid value for {TRUECOLOR_ENABLED_ENV_KEY} indicating truecolor is enabled
-/// 
-const TRUECOLOR_ENABLED_VALUE_TRUECOLOR: &str = "truecolor";
-
-///
-/// Valid value for {TRUECOLOR_ENABLED_ENV_KEY} indicating truecolor is enabled
-/// 
-const TRUECOLOR_ENABLED_VALUE_24BIT: &str = "24bit";
-
-///
-/// Prefix for command line arguments.
-/// 
-const ARGUMENT_PREFIX: &str = "/";
-
-///
-/// Delimiter to split command line arguments
-/// as key to value.
-/// 
-const ARGUMENT_DELIMITER: &str = ":";
-
-pub mod handle_bmp;
+use bmp::*;
+use constants::*;
 
 fn main() {
     //Read in command line arguments
@@ -173,12 +63,12 @@ fn main() {
     };
 
     let algorithm = match algorithm_name.to_lowercase().as_str() {
-        CONSOLE_COLOR_ALGORITHM_RGB_MANHATTAN => BitMapColor::get_manhattan_distance_rgb,
-        CONSOLE_COLOR_ALGORITHM_RGB_EUCLIDEAN => BitMapColor::get_euclidean_distance_rgb,
-        CONSOLE_COLOR_ALGORITHM_LAB_MANHATTAN => BitMapColor::get_manhattan_distance_lab,
-        CONSOLE_COLOR_ALGORITHM_LAB_EUCLIDEAN => BitMapColor::get_euclidean_distance_lab,
-        CONSOLE_COLOR_ALGORITHM_XYZ_MANHATTAN => BitMapColor::get_manhattan_distance_xyz,
-        CONSOLE_COLOR_ALGORITHM_XYZ_EUCLIDEAN => BitMapColor::get_euclidean_distance_xyz,
+        CONSOLE_COLOR_ALGORITHM_RGB_MANHATTAN => RGBColor::get_manhattan_distance_rgb,
+        CONSOLE_COLOR_ALGORITHM_RGB_EUCLIDEAN => RGBColor::get_euclidean_distance_rgb,
+        CONSOLE_COLOR_ALGORITHM_LAB_MANHATTAN => RGBColor::get_manhattan_distance_lab,
+        CONSOLE_COLOR_ALGORITHM_LAB_EUCLIDEAN => RGBColor::get_euclidean_distance_lab,
+        CONSOLE_COLOR_ALGORITHM_XYZ_MANHATTAN => RGBColor::get_manhattan_distance_xyz,
+        CONSOLE_COLOR_ALGORITHM_XYZ_EUCLIDEAN => RGBColor::get_euclidean_distance_xyz,
         _ => panic!("{algorithm_name} is not a valid distance algorithm.")
     };
 
