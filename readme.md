@@ -8,7 +8,8 @@ An application that attempts to read a bitmap and render it to a terminal using 
 - Apply transformations to bitmap?
   - Convert to greyscale, rotate hue, change saturation, invert colors, change palette, shaders, etc
 - L\*a\*b\* color space has three reference values which are supposed to help approximate color distances in a way similar to human vision, but right now I have all 3 references set to 1_f32. The approximation might improve with different reference values.
-
+- Reading 1/4/8/24/32-bit bitmaps is supported, but 16-bit is not.
+- 32-bit bitmaps have an alpha channel, but it is currently ignored during rendering.
 ## Known Bugs:
 - ~~Application currently only works in some consoles.~~ (Fixed)
   - ~~VS Code's integrated terminal, and bash/unix terminals seem to work.~~
