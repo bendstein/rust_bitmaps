@@ -61,7 +61,7 @@ impl BitMapRaw {
                 blue: chunk[0],
                 green: chunk[1],
                 red: chunk[2],
-                alpha: chunk[3]
+                alpha: 0xFF
             })
             .for_each(|entry| color_table_vec.push(entry));
         }
@@ -175,22 +175,13 @@ impl BitMapRaw {
                         if chunk.len() == bytesperpixel {
                             //Extract alpha, blue, green, and red from their respective bytes
                             let color = RGBColor {
+                                blue: chunk[0],
+                                green: chunk[1],
+                                red: chunk[2],
                                 alpha: match bytesperpixel {
-                                    32 => chunk[0],
-                                    _ => 0
-                                },
-                                blue: match bytesperpixel {
-                                    32 => chunk[1],
-                                    _ => chunk[0]
-                                },
-                                green: match bytesperpixel {
-                                    32 => chunk[2],
-                                    _ => chunk[1]
-                                },
-                                red: match bytesperpixel {
-                                    32 => chunk[3],
-                                    _ => chunk[2]
-                                },
+                                    4 => chunk[3],
+                                    _ => 0xFF
+                                }
                             };
 
                             pixel_vec.push(color);

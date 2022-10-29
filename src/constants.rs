@@ -4,10 +4,15 @@
 pub const FILE_PATH_KEY: &str = "path";
 
 ///
-/// Command line argument key for the byte representing
+/// Command line argument key for the color representing
 /// transparency.
 /// 
-pub const TRANSPARENCY_BYTE_KEY: &str = "transparency";
+pub const TRANSPARENCY_COLOR_KEY: &str = "transparency";
+
+///
+/// Command line argument key for the background color
+/// 
+pub const BACKGROUND_COLOR_KEY: &str = "background";
 
 ///
 /// Command line argument key for whether to force
@@ -18,12 +23,12 @@ pub const FORCE_NO_TRUECOLOR_KEY: &str = "no_truecolor";
 ///
 /// The string to use to represent the pixel in the console
 /// 
-pub const PIXEL_STRING_KEY: &str = "pixel_string";
+pub const PIXEL_STRINGS_KEY: &str = "pixel_strings";
 
 ///
-/// Default string with which to represent the pixel in the console
+/// Default strings with which to represent the pixel in the console
 /// 
-pub const PIXEL_STRING_DEFAULT: &str = "█";
+pub const PIXEL_STRINGS_DEFAULT: &str = "██,█▓,▓▓,▓▒,▒▒,▒░,░░,░ ";
 
 ///
 /// Command line argument key for the width of a
@@ -109,3 +114,9 @@ pub const ARGUMENT_PREFIX: &str = "/";
 /// as key to value.
 /// 
 pub const ARGUMENT_DELIMITER: &str = ":";
+
+///
+/// Delimiter to split different opacity levels in
+/// the pixels string
+/// 
+pub const OPACITY_LEVEL_DELIMITER: &str = ",";

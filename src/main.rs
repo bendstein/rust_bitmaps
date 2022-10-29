@@ -76,10 +76,14 @@ fn main() {
         println!("Truecolor is not enabled for this terminal. Will approximate distance to console colors using {algorithm_name} distance.");
     }
 
-    let pixel_string: &str = match args.get(PIXEL_STRING_KEY) {
-        None => PIXEL_STRING_DEFAULT,
+    let pixel_strings: &str = match args.get(PIXEL_STRINGS_KEY) {
+        None => PIXEL_STRINGS_DEFAULT,
         Some(value) => value.as_str()
     };
+
+    let opacity_levels = pixel_strings.split(OPACITY_LEVEL_DELIMITER)
+    .map(|s| String::from(s))
+    .collect::<Vec<String>>();
 
     const REGEX_VALUE_CAPTURE_NAME: &str = "VALUE";
     let u32_regex: Regex = Regex::new(r"^(?P<VALUE>\d+)$").unwrap();
@@ -125,10 +129,10 @@ fn main() {
         }
     };
 
-    println!("Pixel representation: {pixel_string}.");
+    println!("Pixel opacities representation: {pixel_strings}.");
     println!("Characters per pixel: {pixel_width}.");
 
-    let transparent_byte: Option<u32> = match args.get(TRANSPARENCY_BYTE_KEY) {
+    let transparent_color: Option<u32> = match args.get(TRANSPARENCY_COLOR_KEY) {
         None => None,
         Some(value) => {
             match string_to_u32(value, 10, &u32_regex) {
@@ -143,11 +147,33 @@ fn main() {
         }
     };
 
-    if let Some(n) = transparent_byte {
-        println!("Transparency byte: {n}.");
+    if let Some(n) = transparent_color {
+        println!("Transparency color: {n}.");
     }
     else {
-        println!("No transparency byte given.");
+        println!("No transparency color given.");
+    }
+
+    let background_color: Option<u32> = match args.get(BACKGROUND_COLOR_KEY) {
+        None => None,
+        Some(value) => {
+            match string_to_u32(value, 10, &u32_regex) {
+                None => {
+                    match string_to_u32(value, 16, &hex_regex) {
+                        None => string_to_u32(value, 2, &binary_regex),
+                        Some(x) => Some(x)
+                    }
+                },
+                Some(x) => Some(x)
+            } 
+        }
+    };
+
+    if let Some(n) = background_color {
+        println!("Background color: {n}.");
+    }
+    else {
+        println!("No background color given.");
     }
 
     println!("Reading file:");
@@ -163,7 +189,7 @@ fn main() {
 
     println!("Drawing to console:");
 
-    bitmap.draw_to_console(&BitMapRawDrawToConsoleSettings::new(transparent_byte, use_truecolor, pixel_width, pixel_string, algorithm));
+    bitmap.draw_to_console(&BitMapRawDrawToConsoleSettings::new(transparent_color, use_truecolor, pixel_width, opacity_levels, background_color, algorithm));
 }
 
 ///
@@ -222,6 +248,7 @@ fn print_help() {
             HELP_KEY,
             "Display application help.".to_string(),
             flag_example(HELP_KEY),
+            "".to_string(),
             flag_key_restriction.to_string(),
             None
         ),
@@ -229,14 +256,24 @@ fn print_help() {
             FILE_PATH_KEY,
             "The path to the bitmap.".to_string(),
             pair_example(FILE_PATH_KEY),
+            "".to_string(),
             "Must be a valid filepath (either relative or absolute) to a bitmap.".to_string(),
             None
         ),
         (
-            TRANSPARENCY_BYTE_KEY,
+            TRANSPARENCY_COLOR_KEY,
             "A 32-bit, RGBA color representing transparency. Can be in decimal, binary (prefixed with 0b), or hex (prefixed with 0x).".to_string(),
-            pair_example(TRANSPARENCY_BYTE_KEY),
+            pair_example(TRANSPARENCY_COLOR_KEY),
             u32_restriction.to_string(),
+            format!("{ARGUMENT_PREFIX}{TRANSPARENCY_COLOR_KEY}{ARGUMENT_DELIMITER}0xFF0000FF has 255 in the red/alpha channels. Any pixel of this color will be displayed as whitespace."),
+            None
+        ),
+        (
+            BACKGROUND_COLOR_KEY,
+            "A 32-bit, RGBA color for the background color. Can be in decimal, binary (prefixed with 0b), or hex (prefixed with 0x).".to_string(),
+            pair_example(BACKGROUND_COLOR_KEY),
+            u32_restriction.to_string(),
+            format!("{ARGUMENT_PREFIX}{PIXEL_STRINGS_KEY}{ARGUMENT_DELIMITER}0xFF0000FF has 255 in the red/alpha channels, giving a red background."),
             None
         ),
         (
@@ -244,27 +281,31 @@ fn print_help() {
             "When set, will display bitmap using 4-bit terminal colors even if the terminal supports truecolor/24-bit color.".to_string(),
             flag_example(FORCE_NO_TRUECOLOR_KEY),
             flag_key_restriction.to_string(),
+            "".to_string(),
             Some(false_string)
         ),
         (
-            PIXEL_STRING_KEY,
-            "The string to use to represent a pixel when displaying the bitmap in the terminal.".to_string(),
-            pair_example(PIXEL_STRING_KEY),
+            PIXEL_STRINGS_KEY,
+            "The comma-delimited strings to use to represent pixels of different opacities when displaying the bitmap in the terminal, from most to least opaque.\r\n      If only one string is present, opacity will be ignored. For a bitmap with a depth < 32, only the first string will be considered.".to_string(),
+            pair_example(PIXEL_STRINGS_KEY),
             "".to_string(),
-            Some(PIXEL_STRING_DEFAULT)
+            "".to_string(),
+            Some(PIXEL_STRINGS_DEFAULT)
         ),
         (
             PIXEL_STRING_WIDTH_KEY,
-            format!("The number of times {{{ARGUMENT_PREFIX}{PIXEL_STRING_KEY}}} should be repeated to display a pixel."),
+            format!("The number of times a pixel from {{{ARGUMENT_PREFIX}{PIXEL_STRINGS_KEY}}} should be repeated to display a pixel."),
             pair_example(PIXEL_STRING_WIDTH_KEY),
             u32_restriction.to_string(),
+            format!("1: {{{ARGUMENT_PREFIX}{PIXEL_STRINGS_KEY}}} will not be repeated; 2: {{{ARGUMENT_PREFIX}{PIXEL_STRINGS_KEY}}} will be repeated twice for each pixel."),
             Some(pixel_string_width_default_string)
         ),
         (
             CONSOLE_COLOR_ALGORITHM_KEY,
-            "The algorithm to use to calculate the distance between 2 colors when determining the best match between the actual color of a pixel and the 4-bit terminal color to use. Ignored if displaying bitmap in truecolor.".to_string(),
+            "The algorithm to use to calculate the distance between 2 colors when determining the best match between the actual color of a pixel\r\n      and the 4-bit terminal color to use. Ignored if displaying bitmap in truecolor.".to_string(),
             pair_example(CONSOLE_COLOR_ALGORITHM_KEY),
             format!("[{CONSOLE_COLOR_ALGORITHM_RGB_EUCLIDEAN}, {CONSOLE_COLOR_ALGORITHM_RGB_MANHATTAN}, {CONSOLE_COLOR_ALGORITHM_XYZ_EUCLIDEAN}, {CONSOLE_COLOR_ALGORITHM_XYZ_MANHATTAN}, {CONSOLE_COLOR_ALGORITHM_LAB_EUCLIDEAN}, {CONSOLE_COLOR_ALGORITHM_LAB_MANHATTAN}]"),
+            "".to_string(),
             Some(CONSOLE_COLOR_ALGORITHM_DEFAULT)
         )
     ];
@@ -282,7 +323,11 @@ fn print_help() {
             println!("    -Restrictions: {}", info.3);
         }
 
-        if let Some(default_value) = info.4 {
+        if !info.4.is_empty() {
+            println!("    -Exmaple: {}", info.4);
+        }
+
+        if let Some(default_value) = info.5 {
             println!("    -Default Value: {}", default_value);
         }
     });
