@@ -110,6 +110,8 @@ impl Clone for BitMapRawDrawToConsoleSettings {
 
 impl BitMapRaw {
     pub fn draw_to_console(&self, settings: &BitMapRawDrawToConsoleSettings) {
+        let _ = colored::control::set_virtual_terminal(true);
+
         //Write some top padding
         println!();
 

@@ -3,17 +3,17 @@ An application that attempts to read a bitmap and render it to a terminal using 
     - Otherwise, each RGB value will be approximated to the nearest terminal color.
 
 ## todo:
-- Look into using the ANSI escape code for invert to possibly add support for more output colors when approximating to terminal colors.
+- ~~Look into using the ANSI escape code for invert to possibly add support for more output colors when approximating to terminal colors.~~ (Not feasible)
 - Terminal colors are implemented with different color codes in different terminals. (e.g. Dark Red is <span style="font-weight: bold; color: #800000">#800000</span> in Powershell, but <span style="font-weight: bold; color: #CC3131">#CC3131</span> in VS Code). Is there a way to tell what terminal is being used, and change approximations from RGB to terminal color based on the terminal?
 - Apply transformations to bitmap?
   - Convert to greyscale, rotate hue, change saturation, invert colors, change palette, shaders, etc
 - L\*a\*b\* color space has three reference values which are supposed to help approximate color distances in a way similar to human vision, but right now I have all 3 references set to 1_f32. The approximation might improve with different reference values.
 
 ## Known Bugs:
-- Application currently only works in some consoles.
-  - VS Code's integrated terminal, and bash/unix terminals seem to work.
-  - Windows CMD/Powershell do not seem to directly support ANSI colors, and print the escape sequence literally.
-    - This only occurs when running the application directly; running the application using ```cargo run``` works as intended in both CMD and Powershell, suggesting that possibly there's an environment variable or argument I need set?
+- ~~Application currently only works in some consoles.~~ (Fixed)
+  - ~~VS Code's integrated terminal, and bash/unix terminals seem to work.~~
+  - ~~Windows CMD/Powershell do not seem to directly support ANSI colors, and print the escape sequence literally.~~
+    - ~~This only occurs when running the application directly; running the application using ```cargo run``` works as intended in both CMD and Powershell, suggesting that possibly there's an environment variable or argument I need set?~~
 - Output breaks when the image doesn't fit in the bounds of the console.
 
 ## Arguments:
