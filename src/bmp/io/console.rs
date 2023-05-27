@@ -1,5 +1,5 @@
 use colored::{Colorize, ColoredString};
-use std::{collections::HashMap, iter::FusedIterator};
+use std::{collections::HashMap};
 use unicode_segmentation::UnicodeSegmentation;
 use super::super::*;
 
@@ -146,6 +146,9 @@ impl Clone for BitMapRawDrawToConsoleSettings {
 }
 
 impl BitMapRaw {
+    const TRANSPARENT_STRING: &str = " ";
+    const TRANSPARENT_STRING_W_BACKGROUND: &str = ".";
+
     pub fn draw_to_console(&self, settings: &BitMapRawDrawToConsoleSettings) {
         let _ = colored::control::set_virtual_terminal(true);
 
@@ -201,7 +204,7 @@ impl BitMapRaw {
 
             let width = u32::min(usize::MAX as u32, (settings.pixel_string_width() as u32) * settings.pixel_width) as usize;
 
-            let transparent_string = Self::repeat_string(" ", width);
+            let transparent_string = Self::repeat_string(Self::TRANSPARENT_STRING, width);
 
             let pixel_string = match pixel_string_ndx {
                 None => transparent_string,
@@ -226,7 +229,7 @@ impl BitMapRaw {
 
             let width = u32::min(usize::MAX as u32, (settings.pixel_string_width() as u32) * settings.pixel_width) as usize;
 
-            let transparent_string = Self::repeat_string(" ", width);
+            let transparent_string = Self::repeat_string(Self::TRANSPARENT_STRING, width);
 
             let pixel_string = match pixel_string_ndx {
                 None => transparent_string,
@@ -271,22 +274,33 @@ impl BitMapRaw {
                 let index = (n * (m - j - 1)) + i;
                 
                 //Get color from index
-                let pixel = &self.pixel_data.pixels[index as usize];
+                let pixel = &self.pixel_data.pixels[index as usize].clone();
+
+                //Get background color
+                let background_color = &adjusted_background
+                    .map(|n| {
+                        let mut temp = RGBColor::from_u32(n, true);
+                        temp.alpha = 0xFF;
+                        temp
+                    });
+                
 
                 //Get pixels string to use from opacity
                 let pixel_string_ndx: Option<usize> = Self::get_pixel_from_opacity(pixel, &adjusted_settings);
 
                 let width = u32::min(usize::MAX as u32, (settings.pixel_string_width() as u32) * settings.pixel_width) as usize;
 
-                let transparent_string = Self::repeat_string(" ", width);
+                let transparent_string = Self::repeat_string(Self::TRANSPARENT_STRING, width);
+                let transparent_string_w_background = Self::repeat_string(Self::TRANSPARENT_STRING_W_BACKGROUND, width);
 
-                let pixel_string = match pixel_string_ndx {
-                    None => transparent_string,
-                    Some(n) => Self::repeat_string(settings.opacity_levels[n].as_str(), width)
+                let (pixel_string, color) = match pixel_string_ndx {
+                    None if background_color.is_some() => (transparent_string_w_background, background_color.as_ref().unwrap()),
+                    None => (transparent_string, pixel),
+                    Some(n) =>(Self::repeat_string(settings.opacity_levels[n].as_str(), width), pixel)
                 };
 
                 //Apply ANSI coloring to the string so it is printed with color
-                let (to_print, _) = Self::color_string(pixel_string.as_str(), pixel, &adjusted_settings);
+                let (to_print, _) = Self::color_string(pixel_string.as_str(), color, &adjusted_settings);
 
                 //Print the next pixel to the console
                 print!("{to_print}");
@@ -332,7 +346,7 @@ impl BitMapRaw {
         let value_string = value_string.as_str();
 
         //Repeat a space a number of times equal to the length of the value string, storing a temp reference before converting to str
-        let transparent_string = Self::repeat_string(" ", width);
+        let transparent_string = Self::repeat_string(Self::TRANSPARENT_STRING, width);
         let transparent_string = transparent_string.as_str();
 
         let (color_type, adj_color, is_transparent) = Self::get_color_type(color, settings);
